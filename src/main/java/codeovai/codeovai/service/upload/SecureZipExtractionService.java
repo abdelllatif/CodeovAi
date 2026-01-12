@@ -35,7 +35,7 @@ public class SecureZipExtractionService {
         long startTime = System.currentTimeMillis();
         loggingService.logPipelineStep("ZIP_EXTRACTION", "Starting secure ZIP extraction", 
             "filename", zipFile.getOriginalFilename(), 
-            "size", zipFile.getSize());
+            "size", String.valueOf(zipFile.getSize()));
         
         try {
             validateZipFile(zipFile);

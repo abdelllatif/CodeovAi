@@ -47,12 +47,16 @@ public class SystemContextBuilderService {
     }
 
     private CoreFlow inferCoreFlow(CodeSummary summary) {
+        CoreFlow flow = new CoreFlow(); // constructor بلا معطيات
+
         if (summary.getEndpoints().isEmpty()) {
-            return new CoreFlow(
-                    "Unknown Flow",
-                    List.of("No REST endpoints detected"),
-                    "N/A"
-            );
+            flow.setName("Unknown Flow");
+            flow.setSteps(List.of("No REST endpoints detected"));
+            flow.setEntryPoint("N/A");
+            flow.setMainComponents("N/A");
+            flow.setDataFlow("N/A");
+            flow.setControlFlow("N/A");
+            return flow;
         }
 
         CodeElement entryPoint = summary.getEndpoints().get(0);
@@ -63,12 +67,16 @@ public class SystemContextBuilderService {
         steps.add("Service layer processes business logic");
         steps.add("Response is returned to the client");
 
-        return new CoreFlow(
-                "Primary API Flow",
-                steps,
-                entryPoint.getName()
-        );
+        flow.setName("Primary API Flow");
+        flow.setSteps(steps);
+        flow.setEntryPoint(entryPoint.getName());
+        flow.setMainComponents("Controller, Service"); // ممكن تغيّر حسب المشروع
+        flow.setDataFlow("Request -> Controller -> Service -> Response");
+        flow.setControlFlow("Synchronous");
+
+        return flow;
     }
+
 
     private List<String> buildAssumptions(CodeSummary summary) {
         List<String> assumptions = new ArrayList<>();

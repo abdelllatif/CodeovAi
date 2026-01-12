@@ -100,24 +100,24 @@ public class AstCodeScanningService {
     
     private List<CodeElement> scanFile(SourceFile sourceFile, Path systemRoot) {
         List<CodeElement> elements = new ArrayList();
-        Path filePath = systemRoot.resolve(sourceFile.getRelativePath());
+        Path filePath = systemRoot.resolve(sourceFile.getPath());
         
         try {
             String content = Files.readString(filePath);
             String fileName = filePath.getFileName().toString().toLowerCase();
             
             if (fileName.endsWith(".java")) {
-                elements.addAll(scanJavaFile(content, sourceFile.getRelativePath()));
+                elements.addAll(scanJavaFile(content, sourceFile.getPath()));
             } else if (fileName.endsWith(".kt")) {
-                elements.addAll(scanKotlinFile(content, sourceFile.getRelativePath()));
+                elements.addAll(scanKotlinFile(content, sourceFile.getPath()));
             } else if (fileName.endsWith(".js") || fileName.endsWith(".ts")) {
-                elements.addAll(scanJavaScriptFile(content, sourceFile.getRelativePath()));
+                elements.addAll(scanJavaScriptFile(content, sourceFile.getPath()));
             } else if (fileName.endsWith(".php")) {
-                elements.addAll(scanPhpFile(content, sourceFile.getRelativePath()));
+                elements.addAll(scanPhpFile(content, sourceFile.getPath()));
             }
             
         } catch (IOException e) {
-            loggingService.logError("AST_SCANNING", "Failed to read file: " + sourceFile.getRelativePath(), e);
+            loggingService.logError("AST_SCANNING", "Failed to read file: " + sourceFile.getPath(), e);
         }
         
         return elements;
@@ -321,11 +321,12 @@ public class AstCodeScanningService {
         
         return element;
     }
-    
-    private String getVisibility(Optional<AccessSpecifier> accessSpecifier) {
-        return accessSpecifier.map(spec -> spec.asString()).orElse("package");
+    private String getVisibility(AccessSpecifier accessSpecifier) {
+        if (accessSpecifier == null) return "package";
+        return accessSpecifier.asString();
     }
-    
+
+
     private List<String> extractAnnotations(List<AnnotationExpr> annotations) {
         return annotations.stream()
             .map(AnnotationExpr::getNameAsString)

@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
 
 @Service
 public class CodeSummarizationService {
-
+    List<CodeElement> methods = new ArrayList<>();
+    List<CodeElement> endpoints = new ArrayList<>();
     private static final Pattern CLASS_PATTERN =
             Pattern.compile("\\bclass\\s+(\\w+)");
 
@@ -57,11 +58,11 @@ public class CodeSummarizationService {
     ) {
         Matcher matcher = CLASS_PATTERN.matcher(content);
         while (matcher.find()) {
-            CodeElement element = new CodeElement(
-                    matcher.group(1),
-                    "CLASS",
-                    file.getType()
-            );
+            CodeElement element = new CodeElement();
+            element.setName(matcher.group(1));
+            element.setElementType("CLASS");
+            element.setSourceType(file.getType());
+
 
             switch (file.getType()) {
                 case "CONTROLLER" -> controllers.add(element);
@@ -79,11 +80,11 @@ public class CodeSummarizationService {
     ) {
         Matcher matcher = METHOD_PATTERN.matcher(content);
         while (matcher.find()) {
-            CodeElement element = new CodeElement(
-                    matcher.group(2),
-                    "METHOD",
-                    file.getType()
-            );
+            CodeElement element = new CodeElement();
+            element.setName(matcher.group(2));
+            element.setElementType("METHOD");
+            element.setSourceType(file.getType());
+            methods.add(element);
 
             if ("CONTROLLER".equals(file.getType())) {
                 controllers.add(element);
@@ -96,11 +97,11 @@ public class CodeSummarizationService {
     private void extractEndpoints(String content, List<CodeElement> endpoints) {
         Matcher matcher = ENDPOINT_PATTERN.matcher(content);
         while (matcher.find()) {
-            endpoints.add(new CodeElement(
-                    matcher.group(2),
-                    "ENDPOINT",
-                    matcher.group(1)
-            ));
+            CodeElement endpoint = new CodeElement();
+            endpoint.setName(matcher.group(2));
+            endpoint.setElementType("ENDPOINT");
+            endpoint.setSourceType(matcher.group(1));
+            endpoints.add(endpoint);
         }
     }
 }

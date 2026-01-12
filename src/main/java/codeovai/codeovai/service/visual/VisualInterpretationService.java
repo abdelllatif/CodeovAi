@@ -12,6 +12,7 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.pdfbox.io.MemoryUsageSetting;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -42,7 +43,7 @@ public class VisualInterpretationService {
         long startTime = System.currentTimeMillis();
         loggingService.logPipelineStep("VISUAL_INTERPRETATION", "Starting diagram interpretation", 
             "filename", file.getOriginalFilename(), 
-            "size", file.getSize());
+            "size",  String.valueOf(file.getSize()));
         
         try {
             String extractedText = extractText(file);
@@ -75,9 +76,10 @@ public class VisualInterpretationService {
     
     private String extractFromPdf(MultipartFile file) throws IOException {
         StringBuilder allText = new StringBuilder();
-        
-        try (PDDocument document = PDDocument.load(file.getBytes())) {
+        try (PDDocument document = PDDocument.load(
+                new ByteArrayInputStream(file.getBytes()), MemoryUsageSetting.setupMainMemoryOnly())) {
             PDFRenderer renderer = new PDFRenderer(document);
+
             
             for (int page = 0; page < document.getNumberOfPages(); page++) {
                 BufferedImage image = renderer.renderImageWithDPI(page, 300, ImageType.RGB);
@@ -271,23 +273,24 @@ public class VisualInterpretationService {
     private void enhanceElementDetection(List<DiagramElement> elements, String fullText) {
         // Additional processing to detect missed elements
         String[] lines = fullText.split("\n");
-        
+
         for (String line : lines) {
             line = line.trim();
-            
-            // Look for standalone class names that might have been missed
-            if (line.matches("^[A-Z][a-zA-Z0-9_]*$") && line.length() > 2) {
+
+            final String currentLine = line;
+            if (currentLine.matches("^[A-Z][a-zA-Z0-9_]*$") && currentLine.length() > 2) {
                 boolean exists = elements.stream()
-                    .anyMatch(e -> line.equals(e.getName()));
-                
+                        .anyMatch(e -> currentLine.equals(e.getName()));
+
                 if (!exists) {
                     DiagramElement element = new DiagramElement();
-                    element.setName(line);
+                    element.setName(currentLine);
                     element.setType("CLASS");
                     elements.add(element);
                 }
             }
         }
+
         
         // Detect stereotypes in the full text that might have been missed
         Pattern globalStereotypePattern = Pattern.compile("«(.*?)»");

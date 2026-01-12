@@ -5,6 +5,7 @@ import codeovai.codeovai.service.core.LoggingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.imaging.ImageFormat;
+import org.apache.commons.imaging.ImageFormats;
 import org.apache.commons.imaging.Imaging;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,7 +45,7 @@ public class InputClassifierService {
     public InputType classifyInput(MultipartFile file) {
         loggingService.logPipelineStep("INPUT_CLASSIFICATION", "Starting file classification", 
             "filename", file.getOriginalFilename(), 
-            "size", file.getSize());
+            "size", String.valueOf(file.getSize()));
         
         try {
             validateFile(file);
@@ -118,14 +119,19 @@ public class InputClassifierService {
     private boolean isImageFile(byte[] fileBytes, String filename) {
         try {
             ImageFormat format = Imaging.guessFormat(fileBytes);
-            if (format != null && format != ImageFormat.UNKNOWN) {
+            if (format != null) {
+                if (!format.equals(ImageFormats.BMP) &&
+                        !format.equals(ImageFormats.GIF) &&
+                        !format.equals(ImageFormats.JPEG) &&
+                        !format.equals(ImageFormats.PNG) &&
+                        !format.equals(ImageFormats.TIFF)) {
+                    return false;
+                }
                 return true;
             }
         } catch (Exception e) {
             log.debug("Failed to detect image format using Apache Imaging", e);
         }
-        
-        // Fallback to extension check
         String extension = getFileExtension(filename);
         return SUPPORTED_IMAGE_EXTENSIONS.contains(extension);
     }
