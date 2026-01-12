@@ -1,0 +1,79 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: codeovai
+  
+  # Redis configuration for caching
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  # Cache configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 hour default TTL
+  
+  # File upload configuration
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+# Logging configuration
+logging:
+  level:
+    codeovai.codeovai: INFO
+    org.springframework.web: INFO
+    com.github.javaparser: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Application-specific configuration
+codeovai:
+  # File processing limits
+  max-zip-size: 100MB
+  max-entry-size: 10MB
+  max-entries: 1000
+  
+  # OCR Configuration
+  ocr:
+    tessdata-path: tessdata
+    language: eng
+  
+  # AI Service Configuration
+  gemini:
+    api-key: ${GEMINI_API_KEY:your-gemini-api-key-here}
+    model: gemini-pro
+    max-tokens: 4096
+    temperature: 0.3
+  
+  # Security Configuration
+  security:
+    dangerous-extensions: exe,bat,cmd,com,pif,scr,vbs,js,jar,app,deb,pkg,dmg,rpm
+    suspicious-patterns: ../,./,\,~,system32,windows,program files
+  
+  # Performance Configuration
+  performance:
+    thread-pool-size: 10
+    cache-cleanup-interval: 3600000  # 1 hour
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
